@@ -36,15 +36,33 @@ const updateOrder = async (req, res) => {
  
    try {
      const orderChanged = await OrderModel.findOneAndUpdate(
-       { _id: orderId, "order._id": newValue._id }, // Agrega la condición del ID del producto
+       { _id: orderId, "order._id": newValue._id },
        {
          $set: {
            "order.$.cantidad": cantidad,
            "order.$.estado": estado,
            "order.$.producto": producto,
          },
+         finished: newValue.finished
        },
        { new: true }
+     );
+     return res.status(200).json({ ok: true, orderChanged });
+   } catch (error) {
+     console.log(error);
+     return res
+       .status(303)
+       .json({ ok: false, msg: "Something happened", error: error });
+   }
+ };
+
+const orderFinished = async (req, res) => {
+   const { newValue, orderId } = req.body;
+   const { order, finished, customer } = newValue;
+
+   try {
+     const orderChanged = await OrderModel.findOneAndUpdate(
+       { _id: orderId } , {order:order, finished: finished, customer:customer} , { new: true }
      );
      return res.status(200).json({ ok: true, orderChanged });
    } catch (error) {
@@ -60,5 +78,6 @@ const updateOrder = async (req, res) => {
 module.exports = {
     addNewOrder,
     allOrders,
-    updateOrder
+    updateOrder,
+    orderFinished
 };
