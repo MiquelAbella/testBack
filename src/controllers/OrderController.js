@@ -12,7 +12,8 @@ const addNewOrder = async (req, res) => {
          
         const newOrder = new OrderModel({customer, order, customerId:foundCustomer._id, finished})
         await newOrder.save()
-        return res.status(200).json({ok:true, newOrder, foundCustomer})
+        const newOrderWithCustomer = await newOrder.populate("customerId")
+        return res.status(200).json({ok:true, newOrder:newOrderWithCustomer, foundCustomer})
      } catch (error) {
         console.log(error)
         return res.status(503).json({ok:false, msg:"something wrong"})
@@ -22,6 +23,7 @@ const addNewOrder = async (req, res) => {
 const allOrders = async (req, res) => {
    try {
       const orders = await OrderModel.find({}).populate("customerId")
+
       console.log(orders)
       return res.status(200).send({ok:true, orders})
    } catch (error) {
@@ -32,7 +34,7 @@ const allOrders = async (req, res) => {
 const updateOrder = async (req, res) => {
    const { newValue, orderId } = req.body;
    const { cantidad, estado, producto } = newValue;
-   console.log(newValue);
+   console.log(estado);
  
    try {
      const orderChanged = await OrderModel.findOneAndUpdate(
@@ -46,7 +48,10 @@ const updateOrder = async (req, res) => {
          finished: newValue.finished
        },
        { new: true }
-     );
+     ).populate("customerId");
+     
+     console.log(orderChanged)
+     
      return res.status(200).json({ ok: true, orderChanged });
    } catch (error) {
      console.log(error);
@@ -59,11 +64,14 @@ const updateOrder = async (req, res) => {
 const orderFinished = async (req, res) => {
    const { newValue, orderId } = req.body;
    const { order, finished, customer } = newValue;
+   order.map((ord) => {
+    return {...ord, estado: "finished"}})
+    console.log(newValue,order)
 
    try {
      const orderChanged = await OrderModel.findOneAndUpdate(
        { _id: orderId } , {order:order, finished: finished, customer:customer} , { new: true }
-     );
+     ).populate("customerId");
      return res.status(200).json({ ok: true, orderChanged });
    } catch (error) {
      console.log(error);
@@ -73,11 +81,28 @@ const orderFinished = async (req, res) => {
    }
  };
  
- module.exports = updateOrder;
+ const deleteOrder = async (req, res) => {
+    const {id} = req.params
+    try {
+      const deletedOrder = await OrderModel.findByIdAndDelete(id)
+      return res.status(200).json({ok:true, id})
+    } catch (error) {
+      console.log(error)
+      return res.status(303).json({ok:false, msg:"something wrong"})
+      
+    }
+     
+
+
+ }
+
+
+
 
 module.exports = {
     addNewOrder,
     allOrders,
     updateOrder,
-    orderFinished
+    orderFinished,
+    deleteOrder
 };

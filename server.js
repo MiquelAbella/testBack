@@ -4,6 +4,7 @@ const fileUpload = require('express-fileupload')
 
 const customerRouter = require("./src/routes/customer");
 const orderRouter = require("./src/routes/order");
+const productRouter = require("./src/routes/product");
 
 
 const app = express();
@@ -20,5 +21,7 @@ app.use(fileUpload({
 
 app.use("/customer", customerRouter);
 app.use("/order", orderRouter);
+app.use("/product", productRouter);
+
 
 module.exports = app;

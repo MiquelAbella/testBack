@@ -31,6 +31,9 @@ const OrderSchema = Schema({
       type: Boolean,
       required: true
     }
+  },
+  {
+    timestamps: true
   });
 
 const OrderModel = model("Order", OrderSchema)
